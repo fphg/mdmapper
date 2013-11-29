@@ -10,7 +10,8 @@ default = {
     'csw': 'http://sdi.georchestra.org/geonetwork/srv/eng/csw',
     'extent': '-180,-90,180,90',
     'maxrecords': 500,
-    'output': 'metadata.shp'
+    'output': 'metadata.shp',
+    'debug': 'WARNING'
 }
 
 
@@ -36,6 +37,7 @@ parser.add_argument('csw',
 # shapefile name
 parser.add_argument('-o', '--output',
     type=str,
+    nargs='?',
     default=default['output'],
     help='shapefile file path, default "%s"'%default['output'],
     metavar='filepath')
@@ -43,6 +45,7 @@ parser.add_argument('-o', '--output',
 # optional extent restriction
 parser.add_argument('-e', '--extent',
     type=str,
+    nargs='?',
     default=default['extent'],
     help='results are contained in WGS84 extent, default "%s"'%default['extent'],
     metavar='xmin,ymin,xmax,ymax')
@@ -50,6 +53,7 @@ parser.add_argument('-e', '--extent',
 # optional max records
 parser.add_argument('-m', '--maxrecords',
     type=int,
+    nargs='?',
     default=500,
     help='retrieves no more than MAXRECORDS metadatas, default %s'%default['maxrecords'],
     metavar='maxrecords')
@@ -57,10 +61,12 @@ parser.add_argument('-m', '--maxrecords',
 # optional http proxy
 parser.add_argument('--http_proxy', type=str,
     default=None,
+    nargs='?',
     help='http proxy host and port, example http://proxy:3128')
 
-args = parser.parse_args()
 
+
+args = parser.parse_args()
 
 # optional proxy handler for urllib2 and owslib
 if bool(args.http_proxy):
@@ -70,7 +76,7 @@ if bool(args.http_proxy):
     urllib2.install_opener(opener)
 
 # csw connection
-bbox = [float(x) for x in args.bbox.split(',')]
+bbox = [float(x) for x in args.extent.split(',')]
 logging.debug('connecting to %s'%args.csw)
 csw = CatalogueServiceWeb(args.csw)
 logging.info('retrieving %s datasets, bbox=%s'%(args.maxrecords, bbox))
@@ -132,5 +138,5 @@ for mdId in csw.records:
 logging.info('metadatas found: %s'%len(csw.records))
 logging.info('layers found: %s'%layercount)
 logging.info('saving results in: %s'%args.output)
-shp.save("metadata.shp")
+shp.save(args.output)
 
